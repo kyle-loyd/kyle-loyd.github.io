@@ -78,9 +78,9 @@
         try {
           let requestPath = `${baseURL}`
           if (!path){
-            requestPath += `$/users/${username}/repos`
+            requestPath += `/users/${username}/repos`
           } else {
-            requestPath += `$/repos/${username}/{repo}/contents/{path}`
+            requestPath += `/repos/${username}/{repo}/contents/{path}`
           }
           const response = await fetch(requestPath);
           if (!response.ok) throw new Error(`GitHub API Error: ${response.statusText}`);
