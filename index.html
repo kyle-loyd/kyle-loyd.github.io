@@ -96,7 +96,7 @@
         switch (cmd) {
           case 'ls':
             if (!currentRepo) {
-              return 'Available Repositories:\n- ' + (await fetchGitHubContents('', '') || [])
+              return 'Available Repositories:\n- ' + (await fetchGitHubContents(null, null) || [])
                 .map(repo => repo.name)
                 .join('\n');
             } else {
