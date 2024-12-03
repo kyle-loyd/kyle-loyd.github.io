@@ -3,59 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>GitHub Python Terminal</title>
+  <title>kyle-loyd.terminal</title>
+  <link rel="stylesheet" href="./style.css"/>
   <script src="https://cdn.jsdelivr.net/pyodide/v0.23.0/full/pyodide.js"></script>
-  <style>
-    body {
-      font-family: 'Courier New', monospace;
-      background-color: #1e1e1e;
-      color: #c5c5c5;
-      margin: 0;
-      padding: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
-    }
-    .terminal {
-      width: 80%;
-      height: 70%;
-      background-color: #000;
-      border: 2px solid #555;
-      padding: 10px;
-      overflow-y: auto;
-      box-shadow: 0px 0px 10px #000;
-    }
-    .terminal-input {
-      display: flex;
-      align-items: center;
-    }
-    .prompt {
-      color: #00ff00;
-      margin-right: 10px;
-    }
-    .input-area {
-      flex: 1;
-      color: #fff;
-      background: none;
-      border: none;
-      outline: none;
-      font-family: 'Courier New', monospace;
-      font-size: 16px;
-    }
-    .output {
-      white-space: pre-wrap;
-      color: #fff;
-      margin-bottom: 10px;
-    }
-    .error {
-      color: red;
-    }
-  </style>
 </head>
 <body>
   <div class="terminal" id="terminal">
-    <div class="output">Welcome to the GitHub Python Terminal! Type 'ls', 'cd', or 'python' commands.</div>
+    <div class="output">*** Work In-Progress (and broken) *** kyle-loyd.terminal (ls, cd, python)</div>
     <div class="terminal-input">
       <span class="prompt">user@github:~$</span>
       <input class="input-area" id="input" type="text" autofocus />
@@ -77,10 +31,10 @@
       async function fetchGitHubContents(repo, path) {
         try {
           let requestPath = `${baseURL}`
-          if (!path){
+          if (!path && !currentRepo){
             requestPath += `/users/${username}/repos`
           } else {
-            requestPath += `/repos/${username}/{repo}/contents/{path}`
+            requestPath += `/repos/${username}/${repo}/contents/${path}`
           }
           const response = await fetch(requestPath);
           if (!response.ok) throw new Error(`GitHub API Error: ${response.statusText}`);
@@ -96,11 +50,14 @@
         switch (cmd) {
           case 'ls':
             if (!currentRepo) {
-              return 'Available Repositories:\n- ' + (await fetchGitHubContents(null, null) || [])
+              return 'Available Repositories:\n' + (await fetchGitHubContents(null, null) || [])
                 .map(repo => repo.name)
                 .join('\n');
             } else {
-              const path = args[0] || currentPath || '';
+              let path = args[0] || currentPath || '';
+              if (!args[0]) {
+
+              }
               const contents = await fetchGitHubContents(currentRepo, path);
               if (!contents) return `ls: cannot access '${path}': No such file or directory`;
               return contents.map(item => (item.type === 'dir' ? `[${item.name}]` : item.name)).join('\n');
@@ -114,22 +71,29 @@
               return `Switched to repository: ${currentRepo}`;
             } else {
               // Navigate within a repository
-              const path = args[0];
+              let path = args[0];
+              if (currentPath) path = `${currentPath}/${path}`
               const contents = await fetchGitHubContents(currentRepo, path);
               if (!contents) return `cd: ${path}: No such file or directory`;
               currentPath = path;
+              // console.log(`currentPath: ${currentPath}`)
               return `Switched to directory: ${path}`;
             }
 
           case 'python':
             if (!args[0]) return 'Usage: python <script_path>';
             const scriptPath = args[0];
-            const fileResponse = await fetch(`${baseURL}/${username}/${currentRepo}/contents/${scriptPath}`);
+            const executeURL = `https://raw.githubusercontent.com`;
+            const fileResponse = await fetch(`${executeURL}/${username}/${currentRepo}/main/${currentPath}/${scriptPath}`);
+            console.log(fileResponse)
             if (!fileResponse.ok) return `python: ${scriptPath}: No such file or directory`;
-            const fileData = await fileResponse.json();
-            const scriptContent = atob(fileData.content);
+            // const fileData = await fileResponse.json();
+            const fileData = await fileResponse;
+            console.log(fileData)
+            // const scriptContent = atob(fileData.content);
             try {
-              return await pyodide.runPythonAsync(scriptContent);
+              // return await pyodide.runPythonAsync(scriptContent);
+              return await pyodide.runPythonAsync(fileData);
             } catch (err) {
               return `Python Error: ${err}`;
             }
