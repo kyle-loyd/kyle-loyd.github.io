@@ -76,7 +76,13 @@
 
       async function fetchGitHubContents(repo, path) {
         try {
-          const response = await fetch(`${baseURL}/${username}/${repo}/contents/${path}`);
+          let requestPath = `${baseURL}`
+          if (!path){
+            requestPath += `$/users/${username}/repos`
+          } else {
+            requestPath += `$/repos/${username}/{repo}/contents/{path}`
+          }
+          const response = await fetch(requestPath);
           if (!response.ok) throw new Error(`GitHub API Error: ${response.statusText}`);
           return await response.json();
         } catch (err) {
